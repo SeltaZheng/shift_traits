@@ -6,8 +6,10 @@ import numpy as np
 
 dir_in = r'D:\GoogleDrive\Projects_ongoing\shift\data\meta'
 
-df_sample = pd.read_csv(f'{dir_in}/processed/sample_list_simplified.csv')
+# df_sample = pd.read_csv(f'{dir_in}/processed/sample_list_simplified.csv')
+df_sample = pd.read_csv(f'{dir_in}/processed/sample_list_simplified_ORNL_v3.csv', encoding='unicode_escape')
 df_inv = pd.read_csv(f'{dir_in}/processed/SHIFT_sample_inventory_20230308.csv')
+
 # Clean the df_inv
 df_inv = df_inv[df_inv['Sample Number'] != '131_flower']
 df_inv = df_inv[df_inv['Sample Number'] != '161_S'].reset_index(drop=True)
@@ -50,7 +52,7 @@ n_inv_only_v2 = n_inv_only.difference(set(n_Elsa) | set(n_wetland))
 # df_inv_only_update = df_inv[df_inv['Sample Number'].astype(int).isin(n_inv_only_v2)]
 df_inv['Sample Number'] = df_inv['Sample Number'].astype(int)
 df_inv_only_update = pd.DataFrame(data=n_inv_only_v2, columns=['Sample Number'])
-df_inv_only_update.to_csv(f'{dir_in}/processed/samples_only_in_UWM_considered_Elsa_wetland.csv', index=False)
+df_inv_only_update.to_csv(f'{dir_in}/processed/samples_only_in_UWM_considered_Elsa_wetland_ORNL[3].csv', index=False)
 
 # figure out the sample type
 df_inv_only_update_type = df_inv_only_update.merge(df_inv.loc[:, ['Sample Number', 'Type']], how='left', on='Sample Number')
@@ -77,7 +79,10 @@ df_sample_byspecies = df_sample_byspecies.reset_index()
 
 # clean the phenophase column
 df_sample_common['Pheno'] = df_sample_common['Phenophase (if rare flowers or seeds, add as multi-select - if sampling flowers separately, add new entry)'].str.split(',').str.get(0)
+# replace nan in Pheno column with NoRecord
+df_sample_common.loc[~df_sample_common['Pheno'].notna(), 'Pheno'] = 'NoRecord'
+
 df_sample_common_group = df_sample_common.groupby(['Species or type', 'Pheno']).agg({'Sample Number': ['count']})
 df_sample_common_group = df_sample_common_group.reset_index()
 
-df_sample_common_group.to_csv(f'{dir_in}/processed/common_samples_grouped.csv', index=False)
+df_sample_common_group.to_csv(f'{dir_in}/processed/common_samples_grouped_ORNL[3].csv', index=False)
