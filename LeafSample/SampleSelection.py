@@ -288,3 +288,42 @@ n_od_only = set(n_od).difference(set(n_ff))
 pd.DataFrame(n_ff_only).to_csv(f'{dir_in}/UWM_inv_sort/FF_only_in_inv_exclude_NPV_BK.csv', index=False)
 pd.DataFrame(n_od_only).to_csv(f'{dir_in}/UWM_inv_sort/OD_only_in_inv_exclude_NPV_BK.csv', index=False)
 pd.DataFrame(n_com).to_csv(f'{dir_in}/UWM_inv_sort/OD_and_FF_in_inv_exclude_NPV_BK.csv', index=False)
+
+#%%-------------------------Check the final list against the most recent flash frozen list----------------
+dir_in =r'D:\GoogleDrive\Projects_ongoing\shift\data\meta'
+df_od_final = pd.read_csv(f'{dir_in}/selected_samples_final_correctdate.csv')
+df_od_done = pd.read_csv(f'{dir_in}/selected_sample_final_wt_od_ff.csv')
+df_ff = pd.read_csv(f'{dir_in}/raw/SHIFT_flash_frozen_UWM.csv',  encoding='unicode_escape')
+n_final = df_od_final['sample number'].astype(int)
+n_ff = df_ff['sample number'].astype(int)
+n_done = df_od_done['sample number'].astype(int)
+n_com = set(n_final).intersection(set(n_ff))
+n_dif = set(n_final).difference(set(n_ff)) # {384, 1665, 259, 37, 933, 1531, 1208, 1529, 1659, 125, 1662}
+n_todo = set(n_com).difference(set(n_done))
+df = pd.DataFrame(data=n_todo, columns=['sample number'])
+df.to_csv(f'{dir_in}/samples_todo.csv', index=False)
+
+#%%---------------------------- select N/15N/13C samples within the sample_todo + wt_od_ff list
+dir_in =r'D:\GoogleDrive\Projects_ongoing\shift\data\meta'
+dir_t = r'D:\GoogleDrive\Projects_ongoing\shift\data\traits'
+dir_spec = r'D:\GoogleDrive\Projects_ongoing\shift\data\spectra\OD'
+
+df_od_done = pd.read_csv(f'{dir_in}/selected_sample_final_wt_od_ff.csv')
+df_ff = pd.read_csv(f'{dir_in}/samples_todo.csv')
+df_t = pd.read_csv(f'{dir_t}/shift_DS_Predict_NEON_v3.csv')
+df_spec = pd.read_csv(f'{dir_spec}/ovendried_spectra_sample_mean.csv')
+df_spec['sample number'] = df_spec['sample_ID'].str.split('_').str.get(1).astype(int)
+
+# target list
+tgt = list(df_od_done['sample number'].astype(int)) + list(df_ff['sample number'].astype(int))
+idx = df_spec['sample number'].isin(tgt)
+df_trait = df_t.loc[idx, ['d13C_M', 'd15N_M', 'Nitrogen_M']].reset_index(drop=True)
+tgt_sample = df_spec.loc[idx, 'sample number'].reset_index(drop=True)
+traits = df_trait.values
+ratio = 1 - 36/traits.shape[0]
+
+x_train_index, x_test_index = kennardstone(traits, test_size=ratio)
+select_traits = traits[x_train_index, :]
+sample_select = tgt_sample[x_train_index]
+sample_select = pd.DataFrame(data=sample_select, columns=['sample number'])
+sample_select.to_csv(f'{dir_in}/36_isotope_samples.csv', index=False)
