@@ -79,10 +79,10 @@ def readdata(spec_fn, vectF, wl_left, wl_right, wl_step, spec_col):
 
 #%%---------------- .asd reading and combining into one .csv--------------------------
 
-Dir_spec = r'G:\Shared drives\Townsend-share\SampleProcessing\SHIFT\Spectra\FreezeDried'
-Dir_out = r'G:\My Drive\Projects_ongoing\shift\data\spectra\FF'
-# Dir_spec = r'G:\Shared drives\Townsend-share\SampleProcessing\SHIFT\Spectra\OvenDried'
-# Dir_out = r'G:\My Drive\Projects_ongoing\shift\data\spectra\OD'
+# Dir_spec = r'G:\Shared drives\Townsend-share\SampleProcessing\SHIFT\Spectra\FreezeDried'
+# Dir_out = r'G:\My Drive\Projects_ongoing\shift\data\spectra\FF'
+Dir_spec = r'D:\GoogleDrive\Projects_ongoing\shift\data\spectra\OD\raw'
+Dir_out = r'D:\GoogleDrive\Projects_ongoing\shift\data\spectra\OD'
 
 
 
@@ -123,8 +123,8 @@ for i, s in enumerate(sorted(subs)):
     else:
         df_spec = pd.concat([df_spec, spec_data], ignore_index=True)
 
-# df_spec.to_csv(f'{Dir_out}/ovendried_spectra.csv', index=False)
-df_spec.to_csv(f'{Dir_out}/flashfrozen_spectra.csv', index=False)
+df_spec.to_csv(f'{Dir_out}/ovendried_spectra_20230602.csv', index=False)
+# df_spec.to_csv(f'{Dir_out}/flashfrozen_spectra.csv', index=False)
 
 
 
