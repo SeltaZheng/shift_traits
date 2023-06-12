@@ -81,11 +81,12 @@ def readdata(spec_fn, vectF, wl_left, wl_right, wl_step, spec_col):
 
 # Dir_spec = r'G:\Shared drives\Townsend-share\SampleProcessing\SHIFT\Spectra\FreezeDried'
 # Dir_out = r'G:\My Drive\Projects_ongoing\shift\data\spectra\FF'
-Dir_spec = r'D:\GoogleDrive\Projects_ongoing\shift\data\spectra\OD\raw'
-Dir_out = r'D:\GoogleDrive\Projects_ongoing\shift\data\spectra\OD'
-
-
-
+# Dir_spec = r'D:\GoogleDrive\Projects_ongoing\shift\data\spectra\OD\raw'
+# Dir_out = r'D:\GoogleDrive\Projects_ongoing\shift\data\spectra\OD'
+Dir_spec = r'D:\GoogleDrive\Projects_ongoing\shift\data\spectra\FF\raw'
+Dir_out = r'D:\GoogleDrive\Projects_ongoing\shift\data\spectra\FF'
+# fn_csv = 'ovendried_spectra_20230602'
+fn_csv = 'flashfrozen_spectra_20230602'
 
 # Get all sub-folders:
 subs = glob.glob(f'{Dir_spec}/*/')
@@ -118,13 +119,38 @@ for i, s in enumerate(sorted(subs)):
     spec_data = spec_data.rename(columns={'index': 'filename'})
     spec_data['handler'] = fn
 
-    if i==0:
+    if i == 0:
         df_spec = spec_data
     else:
         df_spec = pd.concat([df_spec, spec_data], ignore_index=True)
 
-df_spec.to_csv(f'{Dir_out}/ovendried_spectra_20230602.csv', index=False)
+df_spec.to_csv(f'{Dir_out}/{fn_csv}.csv', index=False)
 # df_spec.to_csv(f'{Dir_out}/flashfrozen_spectra.csv', index=False)
+
+#%%----------------- clean the combined csv 1. filter out bad spectra ----------------------------
+# if the sample name contains v1/v2
+V2 = True
+df_spec = pd.read_csv(f'{Dir_out}/{fn_csv}.csv')
+df_spec.shape
+idx = df_spec[df_spec['350.0'] > 0.9].index
+df_spec.drop(idx, inplace=True)
+df_spec.shape
+
+# Extract sample name and fill 0 in front of it if it's less than 4 digits
+sample = df_spec['filename'].str.split('_').str.get(1)
+if V2:
+    sample = sample.str.split('-').str.get(0)
+sample = sample.str.zfill(4)
+df_spec.insert(0, 'SampleNumber', sample)
+
+# Move the handler to 3rd column
+handler = df_spec['handler']
+df_spec = df_spec.drop(columns=['handler'])
+df_spec.insert(2, 'handler', handler)
+df_spec.to_csv(f'{Dir_out}/{fn_csv}_cleaned.csv', index=False)
+
+
+
 
 
 
